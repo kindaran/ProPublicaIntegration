@@ -25,7 +25,7 @@ def getArgs():
         if len(sys.argv) == 4:
             loggingLevel = sys.argv[1].upper()
             args.append(loggingLevel)
-            configFilePath = sys.argv[2] + "\\"
+            configFilePath = sys.argv[2]
             args.append(configFilePath)
             configFileName = sys.argv[3]
             args.append(configFileName)
@@ -126,7 +126,7 @@ def main():
         # END IF
         sourceFilePath = args[1]
         sourceFileName = args[2]
-        sourceFile = sourceFilePath + "\\" + sourceFileName
+        sourceFile = sourceFilePath + "/" + sourceFileName
 
         loggingLevel = getattr(logging, args[0].upper(), 20)
         logging.basicConfig(level=loggingLevel,format="%(levelname)s: %(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p")
@@ -194,7 +194,7 @@ def main():
                 logging.info("Error in get request - try next EIN")
                 continue
             #END IF
-            logging.debug("Found data \r\n %s" %(response.json()))
+            # logging.debug("Found data \r\n %s" %(response.json()))
             data.append(json.loads(response.text))
         #END FOR
 
