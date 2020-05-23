@@ -79,10 +79,10 @@ def generateOutputFilename(p_filename):
     try:
         logging.info("*****GENERATE FILENAME")
         # strips the raw filename out of file string
-        filename = p_filename.split(".")[0].split("\\")[-1]
+        filename = p_filename.split(".")[0].split("/")[-1]
         current_datetime = datetime.strftime(
             datetime.now(), "%Y%m%d%H%M%S")
-        output_filename = filename + current_datetime + ".csv"
+        output_filename = filename + "_" + current_datetime + ".csv"
         logging.debug("Output filename: %s" % (output_filename))
         return output_filename
     except Exception as e:
@@ -100,7 +100,9 @@ def writeFile(p_filename, p_rows):
             output_file = p_filename
             logging.debug('Writing to file: %s' % (output_file))
             with open(output_file, 'w') as hFile:
-                hFile.writerows(p_rows)
+                writer = csv.writer(hFile,quoting=csv.QUOTE_ALL)
+                writer.writerows(p_rows)
+            #END WITH
             logging.info('Done writing')
         else:
             logging.warning("WARNING: No data to write***")
@@ -183,7 +185,18 @@ def main():
             logging.debug("Filing variable found: %s" %(cell.value))
             FilingVars.append(cell.value.strip())
         #END FOR       
-           
+
+        OutputFileHeader = []
+        logging.info("*****GATHER OUTPUT FILE COLUMN NAMES")
+        for cell in sourceSpreadsheet.col_slice(colx=4,start_rowx=1):
+            if cell.ctype != 1:          ## this is cell type XL_CELL_TEXT
+                logging.debug("Non text cell found: '%s' - ending column header processing" %(cell.value))
+                break
+            #END IF
+            logging.debug("Column header found: %s" %(cell.value))
+            OutputFileHeader.append(cell.value.strip())
+        #END FOR       
+
         #execute GET request
         logging.info("*****BUILD RESPONSE DATA LIST")
         data = []
@@ -200,27 +213,36 @@ def main():
 
         #process response
         targetData = []
+
+        #first row of output is column headers
+        targetData.append(OutputFileHeader)
+
         logging.info("*****PROCESS RESPONSE DATA")
         for institution in data:
             logging.debug("Processing EIN %s" %(institution["organization"]["ein"]))
             orgData = []
             for headerVar in HeaderVars:
                 logging.debug("Header var: %s  Value: %s" %(headerVar,institution["organization"][headerVar]))
-                orgData.append(institution["organization"][headerVar])
+                orgData.append(str(institution["organization"][headerVar]))
             #END FOR
             for filingList in institution["filings_with_data"]:
                 if filingList["tax_prd_yr"] in YearList:
-                    outputRow = orgData
+                    outputRow = []
+                    outputRow += orgData
                     for filingVar in FilingVars:
                         logging.debug("Filing var: %s  Value: %s" %(filingVar,filingList[filingVar]))
-                        outputRow.append(filingList[filingVar])
+                        outputRow.append(str(filingList[filingVar]))
                     #END FOR
                     targetData.append(outputRow)
                 #END IF
             #END FOR
         #END FOR
-        logging.debug("Target data \r\n %s" %(targetData))                
+        logging.debug("Target data \r\n %s" %(targetData))   
+
         #write data to CSV
+        logging.debug("S")
+        output_filename = generateOutputFilename(sourceFile)
+        writeFile(output_filename,targetData)
 
     except Exception as e:
         msg = str(e)
