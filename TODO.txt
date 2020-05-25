@@ -1,0 +1,2 @@
+* logging.INFO counts at the end of processing loops
+* modify command line to default logging level to INFO and allow for optional param
