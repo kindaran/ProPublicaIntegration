@@ -102,7 +102,7 @@ def generateOutputFilename(p_filename):
         return None
 # END DEF
 
-def writeFile(p_filename, p_rows):
+def writeCSVFile(p_filename, p_rows):
 
     try:
         logging.info("***WRITING TO OUTPUT FILE")
@@ -119,7 +119,7 @@ def writeFile(p_filename, p_rows):
         #END IF
     except Exception as e:
         msg = str(e)
-        logging.error("*****Error in writeFile. Error: %s" %(msg))
+        logging.error("*****Error in writeCSVFile. Error: %s" %(msg))
 
 #END DEF
 
@@ -257,7 +257,7 @@ def main():
         #write data to CSV
         logging.info("*****WRITE DATA TO CSV")
         output_filename = generateOutputFilename(sourceFile)
-        writeFile(output_filename,targetData)
+        writeCSVFile(output_filename,targetData)
 
     except Exception as e:
         msg = str(e)
