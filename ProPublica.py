@@ -30,7 +30,7 @@ def getArgs():
             loggingLevel = sys.argv[3].upper()
             args.append(loggingLevel)
             print("Logging level is %s" %(loggingLevel))
-            print("Source file path is %s" %(configFilePath + configFileName))
+            print("Config file path is %s" %(configFilePath + "/" + configFileName))
             return args
         elif len(sys.argv) == 3:
             configFilePath = sys.argv[1]
@@ -40,7 +40,7 @@ def getArgs():
             loggingLevel = "INFO"
             args.append(loggingLevel)
             print("Logging level is %s" %(loggingLevel))
-            print("Source file path is %s" %(configFilePath + configFileName))
+            print("Config file path is %s" %(configFilePath + configFileName))
             return args            
         else:
             print("Not enough arguments provided.")
@@ -59,7 +59,7 @@ def getRequest(p_URL):
         which would need to be further manipulated to get the response text
     '''
     try:        
-        logging.info("*****SENDING GET REQUEST")  
+        logging.info("***SENDING GET REQUEST")  
         response = requests.get(p_URL)
         response.raise_for_status()              ##if non-2xx response status returned, an error is raised
         return response
@@ -70,16 +70,16 @@ def getRequest(p_URL):
 
 #END DEF
 
-def loadSourceFile(p_file):
+def loadConfigFile(p_file):
 
     try:
-        logging.info("*****LOAD SOURCE FILE")
+        logging.info("***LOAD CONFIG FILE")
         file = xlrd.open_workbook(p_file)
         worksheet = file.sheet_by_name("Input")
         return worksheet
     except Exception as e:
         msg = str(e)
-        logging.error("*****Error in loadSourceFile. Error: %s" % (msg))
+        logging.error("*****Error in loadConfigFile. Error: %s" % (msg))
         return None
 
 # END DEF
@@ -87,7 +87,7 @@ def loadSourceFile(p_file):
 def generateOutputFilename(p_filename):
 
     try:
-        logging.info("*****GENERATE FILENAME")
+        logging.info("***GENERATE FILENAME")
         # strips the raw filename out of file string
         filename = p_filename.split(".")[0].split("/")[-1]
         current_datetime = datetime.strftime(
@@ -144,7 +144,7 @@ def main():
         logging.basicConfig(level=loggingLevel,format="%(levelname)s: %(asctime)s %(message)s", datefmt="%m/%d/%Y %I:%M:%S %p")
 
         #load source file
-        sourceSpreadsheet = loadSourceFile(sourceFile)
+        sourceSpreadsheet = loadConfigFile(sourceFile)
         if sourceSpreadsheet == None:
             logging.info("Source spreadsheet not found - exiting")
             return
@@ -161,6 +161,7 @@ def main():
             logging.debug("EIN found: %s" %(str(int(cell.value))))
             EINList.append(str(int(cell.value)))
         #END FOR
+        logging.info("Found %d EINs" %(len(EINList)))
 
         YearList = []
         logging.info("*****GATHER YEAR VALUES")
@@ -172,6 +173,7 @@ def main():
             logging.debug("Year found: %s" %(str(int(cell.value))))
             YearList.append(int(cell.value))
         #END FOR
+        logging.info("Found %d Years" %(len(YearList)))
 
         HeaderVars = []
         logging.info("*****GATHER HEADER VARIABLES")
@@ -183,10 +185,10 @@ def main():
             logging.debug("Header variable found: %s" %(cell.value))
             HeaderVars.append(cell.value.strip())
         #END FOR
-        logging.info("Found %d variables" %(len(HeaderVars)))           ####UPDATE OTHER SECTIONS
+        logging.info("Found %d Header variables" %(len(HeaderVars)))
 
         FilingVars = []
-        logging.info("*****GATHER HEADER VARIABLES")
+        logging.info("*****GATHER FILING VARIABLES")
         for cell in sourceSpreadsheet.col_slice(colx=3,start_rowx=1):
             if cell.ctype != 1:          ## this is cell type XL_CELL_TEXT
                 logging.debug("Non text cell found: '%s' - ending Filing var processing" %(cell.value))
@@ -194,7 +196,8 @@ def main():
             #END IF
             logging.debug("Filing variable found: %s" %(cell.value))
             FilingVars.append(cell.value.strip())
-        #END FOR       
+        #END FOR    
+        logging.info("Found %d Filing variables" %(len(FilingVars)))   
 
         OutputFileHeader = []
         logging.info("*****GATHER OUTPUT FILE COLUMN NAMES")
@@ -206,9 +209,10 @@ def main():
             logging.debug("Column header found: %s" %(cell.value))
             OutputFileHeader.append(cell.value.strip())
         #END FOR       
+        logging.info("Found %d column headers" %(len(OutputFileHeader)))
 
         #execute GET request
-        logging.info("*****BUILD RESPONSE DATA LIST")
+        logging.info("*****MAKE API DATA CALLS")
         data = []
         for EIN in EINList:
             logging.debug("Retrieving EIN %s" %(EIN))
@@ -221,12 +225,12 @@ def main():
             data.append(json.loads(response.text))
         #END FOR
 
-        #process response
-        targetData = []
 
-        #first row of output is column headers
+        targetData = []
+        #set first row of output to column headers
         targetData.append(OutputFileHeader)
 
+        #process response
         logging.info("*****PROCESS RESPONSE DATA")
         for institution in data:
             logging.debug("Processing EIN %s" %(institution["organization"]["ein"]))
@@ -247,10 +251,11 @@ def main():
                 #END IF
             #END FOR
         #END FOR
-        logging.debug("Target data \r\n %s" %(targetData))   
+        logging.info("Data rows found %d" %(len(targetData)))
+        logging.debug("Target data \r\n %s" %(targetData)) 
 
         #write data to CSV
-        logging.debug("S")
+        logging.info("*****WRITE DATA TO CSV")
         output_filename = generateOutputFilename(sourceFile)
         writeFile(output_filename,targetData)
 
