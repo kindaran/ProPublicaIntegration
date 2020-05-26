@@ -23,19 +23,29 @@ def getArgs():
     try:
         print("***RETRIEVING COMMAND LINE ARGS")
         if len(sys.argv) == 4:
-            loggingLevel = sys.argv[1].upper()
-            args.append(loggingLevel)
-            configFilePath = sys.argv[2]
+            configFilePath = sys.argv[1]
             args.append(configFilePath)
-            configFileName = sys.argv[3]
+            configFileName = sys.argv[2]
             args.append(configFileName)
+            loggingLevel = sys.argv[3].upper()
+            args.append(loggingLevel)
             print("Logging level is %s" %(loggingLevel))
             print("Source file path is %s" %(configFilePath + configFileName))
             return args
+        elif len(sys.argv) == 3:
+            configFilePath = sys.argv[1]
+            args.append(configFilePath)
+            configFileName = sys.argv[2]
+            args.append(configFileName)
+            loggingLevel = "INFO"
+            args.append(loggingLevel)
+            print("Logging level is %s" %(loggingLevel))
+            print("Source file path is %s" %(configFilePath + configFileName))
+            return args            
         else:
             print("Not enough arguments provided.")
             print(
-                "Incorrect arguments provided\r\nPlease include logging mode, path to source file, and source file name")
+                "Incorrect arguments provided\r\nRequired: <config file path> <config file name> <OPTIONAL: debug level (default INFO)")
             return None
     except Exception as e:
         msg = str(e)
@@ -126,8 +136,8 @@ def main():
             print("Unable to retrieve command line arguments - ending")
             return
         # END IF
-        sourceFilePath = args[1]
-        sourceFileName = args[2]
+        sourceFilePath = args[0]
+        sourceFileName = args[1]
         sourceFile = sourceFilePath + "/" + sourceFileName
 
         loggingLevel = getattr(logging, args[0].upper(), 20)
