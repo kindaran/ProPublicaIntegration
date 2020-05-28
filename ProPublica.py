@@ -40,10 +40,10 @@ def getArgs():
             loggingLevel = "INFO"
             args.append(loggingLevel)
             print("Logging level is %s" %(loggingLevel))
-            print("Config file path is %s" %(configFilePath + configFileName))
+            print("Config file path is %s" %(configFilePath + "/" + configFileName))
             return args            
         else:
-            print("Not enough arguments provided.")
+            print("Incorrect arguments provided.")
             print(
                 "Incorrect arguments provided\r\nRequired: <config file path> <config file name> <OPTIONAL: debug level (default INFO)")
             return None
