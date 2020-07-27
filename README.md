@@ -18,7 +18,7 @@ The application performs the following major functions.
 The following commandline parameters can be used:
 1) path to the Excel config file - could be relative or absolute but absolute would be safest. Do not end with a slash
 2) source file name including extension
-3) optional parameter to set logging level. Has to be a valid debug level like DEBUG or INFO, etc. Of course, would document that for the client but much of the time I dont expect this to be used or the DEBUG level is used.
+3) optional parameter to set logging level. Has to be a valid debug level like DEBUG or INFO, etc. Of course, would document that for the client but much of the time I dont expect this to be used.
 
 ## Obtaining Config Parameters from an Excel Spreadsheet
 The first major functionality is to use an Excel spreadsheet as a type of data-driven interface. The spreadsheet will provide the following parameter data:
